@@ -4,55 +4,55 @@
 
 # ◆ claude-code-statusline
 
-**English** | [繁體中文](README.zh-TW.md)
+為 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)（Anthropic 的 CLI 工具）打造的即時狀態列——把空白的底部變成一目了然的 session 儀表板。
 
-A beautiful, information-dense status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — the CLI tool by Anthropic.
+模型名稱、上下文用量漸層進度條、花費、經過時間、Git 分支、速率限制……所有你在寫程式時需要用餘光掃到的資訊。
 
-Turn the blank status bar into a real-time dashboard: model, context usage with gradient progress bar, cost, duration, git branch, rate limits, and more.
+## 預覽
 
-## Preview
+**正常狀態** — 上下文 42%，一切正常
 
-**Normal** — Context at 42%, everything is fine
+![正常](docs/images/normal.svg)
 
-![Normal](docs/images/normal.svg)
+**警告狀態** — 上下文 75%，該留意了
 
-**Warning** — Context at 75%, pay attention
+![警告](docs/images/warning.svg)
 
-![Warning](docs/images/warning.svg)
+**危險狀態** — 上下文 92%，快爆了
 
-**Danger** — Context at 92%, almost full
+![危險](docs/images/danger.svg)
 
-![Danger](docs/images/danger.svg)
+**Session 剛啟動** — 乾乾淨淨，零噪音
 
-**Startup** — Clean, no noise
+![啟動](docs/images/startup.svg)
 
-![Startup](docs/images/startup.svg)
+## 功能
 
-## Features
+| 功能 | 說明 |
+|------|------|
+| **漸層進度條** | 真彩色（24-bit）漸層，從綠到黃到紅。不支援時自動退回 ANSI 256 色或 ASCII。 |
+| **智慧隱藏** | 零值（`+0/-0`、`0m0s`、速率限制）自動隱藏。`$0.00` 保留但用暗灰色。 |
+| **費用動態變色** | 預設黃色，超過 $5 變黃色警告，超過 $10 變紅色。 |
+| **Git 分支 + 髒標記** | 顯示分支名，有未提交變更時加 `*`。快取 5 秒，不拖慢速度。 |
+| **速率限制** | 5 小時和 7 天用量（僅 Claude Pro/Max）。超過 80% 變紅色。 |
+| **Agent / Worktree 指示器** | `⚙ code-reviewer` 或 `⚙ worktree:my-feature`——僅在啟用時顯示。 |
+| **上下文視窗大小** | 顯示 `1M` 或 `200k`，但如果模型名稱已包含此資訊則不重複。 |
+| **品牌識別** | `◆` 菱形，用 Anthropic 品牌紫 (#7266EA) 上色。 |
+| **三層渲染退回** | 真彩色 → ANSI → ASCII。任何終端機都能用。 |
+| **Nerd Font 支援** | 選配：``, `󰔟`, `` 圖示。設定 `CLAUDE_STATUSLINE_NERDFONT=1`。 |
+| **Powerline 分隔符** | 選配：`` 箭頭。設定 `CLAUDE_STATUSLINE_POWERLINE=1`。 |
+| **< 50ms** | 單次 `jq` 呼叫 + Git 快取。無感延遲。 |
 
-| Feature | Description |
-|---------|-------------|
-| **Gradient progress bar** | True-color (24-bit) gradient from green → yellow → red. Falls back to ANSI 256 colors or ASCII automatically. |
-| **Smart hiding** | Zero values (`+0/-0`, `0m0s`, rate limits) are hidden. `$0.00` stays but dims. |
-| **Dynamic cost coloring** | Yellow by default, red when > $10. |
-| **Git branch + dirty** | Shows branch name with `*` for uncommitted changes. Cached for 5 seconds to stay fast. |
-| **Rate limits** | 5-hour and 7-day usage (Claude Pro/Max only). Red when > 80%. |
-| **Agent / Worktree indicator** | `⚙ code-reviewer` or `⚙ worktree:my-feature` — only when active. |
-| **Context window size** | Shows `1M` or `200k` only when not already in the model name. |
-| **Brand identity** | `◆` diamond in Anthropic purple (#7266EA). |
-| **3-tier rendering** | True color → ANSI → ASCII. Works in any terminal. |
-| **Nerd Font support** | Optional: ``, `󰔟`, `` icons. Set `CLAUDE_STATUSLINE_NERDFONT=1`. |
-| **Powerline separators** | Optional: `` arrows. Set `CLAUDE_STATUSLINE_POWERLINE=1`. |
-| **< 50ms** | Single `jq` call + cached git. No perceptible lag. |
+## 安裝
 
-## Installation
+### macOS / Linux
 
-### Prerequisites
+#### 前置條件
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
-- `jq` — install with `brew install jq` (macOS) or `apt install jq` (Linux)
+- 已安裝 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- `jq` — 用 `brew install jq`（macOS）或 `apt install jq`（Linux）安裝
 
-### Quick install
+#### 快速安裝
 
 ```bash
 git clone https://github.com/kcchien/claude-code-statusline.git
@@ -60,17 +60,15 @@ cd claude-code-statusline
 ./install.sh
 ```
 
-### Manual install
+#### 手動安裝
 
 ```bash
-# 1. Copy the script
+# 1. 複製腳本
 cp statusline.sh ~/.claude/statusline.sh
 chmod +x ~/.claude/statusline.sh
 
-# 2. Add to ~/.claude/settings.json
+# 2. 編輯 ~/.claude/settings.json，加入：
 ```
-
-Add this to your `settings.json`:
 
 ```json
 {
@@ -82,79 +80,140 @@ Add this to your `settings.json`:
 }
 ```
 
-Restart Claude Code. The status line appears after your first interaction.
+### Windows（PowerShell）
 
-## Configuration
+#### 前置條件
 
-All configuration is via environment variables. Add them to your `~/.zshrc` or `~/.bashrc`:
+- 已安裝 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- [PowerShell 7+](https://github.com/PowerShell/PowerShell)（`pwsh`）— 建議使用。Windows PowerShell 5.1 也支援。
+- 不需要 `jq` — PowerShell 版使用原生 `ConvertFrom-Json`。
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `CLAUDE_STATUSLINE_ASCII` | `0` | Set to `1` for pure ASCII mode (no Unicode) |
-| `CLAUDE_STATUSLINE_NERDFONT` | `0` | Set to `1` to enable [Nerd Font](https://www.nerdfonts.com/) icons |
-| `CLAUDE_STATUSLINE_POWERLINE` | follows NERDFONT | Set to `1` for Powerline arrow separators |
-| `COLORTERM` | (system) | `truecolor` or `24bit` enables gradient progress bar |
+#### 快速安裝
 
-Example:
-
-```bash
-# In ~/.zshrc
-export CLAUDE_STATUSLINE_NERDFONT=1  # Enable Nerd Font icons + Powerline arrows
+```powershell
+git clone https://github.com/kcchien/claude-code-statusline.git
+cd claude-code-statusline
+.\install.ps1
 ```
 
-## How it works
+#### 手動安裝
 
-Claude Code's `statusLine` hook sends a JSON payload to your script via stdin after every assistant response. The JSON contains the full session state — model, tokens, cost, git info, rate limits, etc.
+```powershell
+# 1. 複製腳本
+Copy-Item statusline.ps1 -Destination "$env:USERPROFILE\.claude\statusline.ps1"
 
-This script:
+# 2. 編輯 ~/.claude/settings.json，加入：
+```
 
-1. **Single `jq` call** (~3ms) — parses all 14 fields at once
-2. **Git cache** (~0ms on cache hit, ~40ms on refresh) — dirty check cached for 5 seconds in `/tmp/`
-3. **Smart assembly** — only non-zero sections are rendered
-4. **`printf '%b'`** — interprets ANSI escape codes for the final colored output
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "pwsh -NoProfile -File ~/.claude/statusline.ps1",
+    "timeout": 10
+  }
+}
+```
 
-Total: **< 50ms** end-to-end.
+重啟 Claude Code 即可。狀態列會在第一次互動後出現。
 
-### Available data from Claude Code
+## 設定
 
-The status line receives [these JSON fields](https://code.claude.com/docs/en/statusline#available-data):
+所有設定透過環境變數控制。
 
-- `model.display_name` — current model
-- `context_window.used_percentage` — context usage (0-100)
-- `cost.total_cost_usd` — session cost
-- `cost.total_duration_ms` — elapsed time
-- `cost.total_lines_added/removed` — code changes
-- `rate_limits.five_hour/seven_day.used_percentage` — rate limits
-- `worktree.branch/name` — git worktree info
-- `agent.name` — subagent name
-- ...and more. See the [official docs](https://code.claude.com/docs/en/statusline).
+| 變數 | 預設值 | 說明 |
+|------|--------|------|
+| `CLAUDE_STATUSLINE_ASCII` | `0` | 設為 `1` 啟用純 ASCII 模式（無 Unicode） |
+| `CLAUDE_STATUSLINE_NERDFONT` | `0` | 設為 `1` 啟用 [Nerd Font](https://www.nerdfonts.com/) 圖示 |
+| `CLAUDE_STATUSLINE_POWERLINE` | 跟隨 NERDFONT | 設為 `1` 啟用 Powerline 箭頭分隔符 |
+| `COLORTERM` | （系統自動） | `truecolor` 或 `24bit` 時啟用漸層進度條 |
 
-## Testing
+**macOS / Linux** — 加到 `~/.zshrc` 或 `~/.bashrc`：
 
-Run the test script to see all display modes:
+```bash
+export CLAUDE_STATUSLINE_NERDFONT=1  # 啟用 Nerd Font 圖示 + Powerline 箭頭
+```
+
+**Windows** — 加到 PowerShell 設定檔（`$PROFILE`）或透過系統環境變數設定：
+
+```powershell
+$env:CLAUDE_STATUSLINE_NERDFONT = '1'  # 啟用 Nerd Font 圖示 + Powerline 箭頭
+```
+
+## 運作原理
+
+Claude Code 的 `statusLine` 機制會在每次助理回覆後，把完整的 session 狀態打包成 JSON，透過 stdin 送給你指定的腳本。
+
+本腳本的處理流程：
+
+1. **單次 `jq` 呼叫**（~3ms）——一次解析全部 14 個欄位
+2. **Git 快取**（命中 ~0ms，重整 ~40ms）——髒標記結果快取在 `/tmp/`，5 秒更新一次
+3. **智慧組裝**——只有非零的區段才會出現在畫面上
+4. **`printf '%b'`**——最終解釋 ANSI 跳脫碼，輸出彩色結果
+
+端到端耗時：**< 50ms**。
+
+### Claude Code 提供的 JSON 資料
+
+狀態列接收的完整 JSON 欄位可參考[官方文件](https://code.claude.com/docs/en/statusline#available-data)，主要包含：
+
+- `model.display_name` — 目前使用的模型
+- `context_window.used_percentage` — 上下文用量（0-100）
+- `cost.total_cost_usd` — 本次 session 累計花費
+- `cost.total_duration_ms` — 經過時間
+- `cost.total_lines_added/removed` — 程式碼變動行數
+- `rate_limits.five_hour/seven_day.used_percentage` — 速率限制
+- `worktree.branch/name` — Git 工作樹資訊
+- `agent.name` — 子代理名稱
+
+## 測試
+
+執行測試腳本，可以看到所有顯示模式：
+
+**macOS / Linux：**
 
 ```bash
 chmod +x examples/test-mock.sh
-./examples/test-mock.sh          # All scenarios
-./examples/test-mock.sh normal   # Just normal state
-./examples/test-mock.sh danger   # Just danger state
-./examples/test-mock.sh ascii    # ASCII fallback
+./examples/test-mock.sh          # 全部情境
+./examples/test-mock.sh normal   # 只看正常狀態
+./examples/test-mock.sh danger   # 只看危險狀態
+./examples/test-mock.sh ascii    # ASCII 退回模式
 ```
 
-## Bash 3.2 compatibility
+**Windows（PowerShell）：**
 
-This script is designed for macOS's default bash 3.2. Key design decisions:
+```powershell
+.\examples\test-mock.ps1          # 全部情境
+.\examples\test-mock.ps1 normal   # 只看正常狀態
+.\examples\test-mock.ps1 danger   # 只看危險狀態
+.\examples\test-mock.ps1 ascii    # ASCII 退回模式
+```
 
-- **Lookup table for progress bar** — avoids UTF-8 substring issues across bash versions
-- **Line-by-line `read`** — bash 3.2's `IFS` + `read` silently collapses empty delimited fields. Using one `read` per line avoids this.
-- **Sentinel value in `jq`** — `$()` strips trailing newlines, which eats the last field if it's empty. A `"END"` sentinel prevents this.
+## 平台說明
 
-## License
+### Bash 3.2（macOS / Linux）
 
-MIT — see [LICENSE](LICENSE).
+Bash 腳本（`statusline.sh`）針對 macOS 預設的 bash 3.2 設計：
 
-## Credits
+- **進度條用查找表（lookup table）**——迴避不同 bash 版本對 UTF-8 字串截取（substring）的行為差異
+- **逐行 `read`**——bash 3.2 的 `IFS` + `read` 會靜默合併連續的空分隔符號。改用每行一個值就能正確保留空欄位
+- **jq 哨兵值**——bash 的 `$()` 命令替換會吃掉尾部所有換行符。如果最後一個欄位是空字串，就會被吞掉。加一個永不為空的 `"END"` 哨兵值可以防止這個問題
 
-Built with [Claude Code](https://claude.ai/claude-code) (Opus 4.6, 1M context) in a single session. The status line was designed iteratively — from functional prototype to aesthetic dashboard — through collaborative conversation.
+### PowerShell（Windows）
 
-Inspired by the [official statusline documentation](https://code.claude.com/docs/en/statusline) and community projects like [ccstatusline](https://github.com/sirmalloc/ccstatusline) and [starship-claude](https://github.com/martinemde/starship-claude).
+PowerShell 腳本（`statusline.ps1`）針對 Windows 設計：
+
+- **不需要 `jq`**——使用 PowerShell 原生 `ConvertFrom-Json` 解析 JSON。
+- **UTF-16 代理對處理**——Nerd Font 超出 U+FFFF 的碼點（如 `0xF0551`）透過輔助函式轉為 UTF-16 代理對字串。
+- **ANSI 跳脫碼**——使用 `[char]0x1b` 作為跳脫字元。需要 Windows Terminal 或支援 ANSI 序列的終端模擬器。
+- **Git 快取**——存放在 `$env:TEMP\claude-statusline-git-cache`，5 秒 TTL，透過 `LastWriteTime` 判斷過期。
+
+## 授權
+
+MIT — 詳見 [LICENSE](LICENSE)。
+
+## 致謝
+
+使用 [Claude Code](https://claude.ai/claude-code)（Opus 4.6, 1M context）在一次 session 中完成。狀態列的設計是透過對話逐步迭代的——從功能原型到美學儀表板。
+
+靈感來源：[官方 statusline 文件](https://code.claude.com/docs/en/statusline)以及社群專案 [ccstatusline](https://github.com/sirmalloc/ccstatusline) 和 [starship-claude](https://github.com/martinemde/starship-claude)。

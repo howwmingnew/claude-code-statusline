@@ -85,7 +85,7 @@ chmod +x ~/.claude/statusline.sh
 #### 前置條件
 
 - 已安裝 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
-- [PowerShell 7+](https://github.com/PowerShell/PowerShell)（`pwsh`）— 建議使用。Windows PowerShell 5.1 也支援。
+- Windows PowerShell 5.1（內建）或 [PowerShell 7+](https://github.com/PowerShell/PowerShell)。
 - 不需要 `jq` — PowerShell 版使用原生 `ConvertFrom-Json`。
 
 #### 快速安裝
@@ -109,7 +109,7 @@ Copy-Item statusline.ps1 -Destination "$env:USERPROFILE\.claude\statusline.ps1"
 {
   "statusLine": {
     "type": "command",
-    "command": "pwsh -NoProfile -File ~/.claude/statusline.ps1",
+    "command": "powershell.exe -NoProfile -File ~/.claude/statusline.ps1",
     "timeout": 10
   }
 }

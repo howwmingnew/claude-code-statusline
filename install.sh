@@ -37,23 +37,22 @@ if [[ -f "$SETTINGS" ]]; then
   if grep -q '"statusLine"' "$SETTINGS" 2>/dev/null; then
     echo ""
     echo "⚠ Your settings.json already has a statusLine config."
-    echo "  To use this script, update it to:"
+    printf "  Overwrite existing statusLine config? [y/N] "
+    read -r answer
     echo ""
-    echo '  "statusLine": {'
-    echo '    "type": "command",'
-    echo '    "command": "~/.claude/statusline.sh",'
-    echo '    "timeout": 10'
-    echo '  }'
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+      tmp=$(jq '.statusLine = {"type":"command","command":"~/.claude/statusline.sh","timeout":10}' "$SETTINGS")
+      echo "$tmp" > "$SETTINGS"
+      echo "✓ Updated statusLine config in settings.json"
+    else
+      echo "  Skipped. Your existing statusLine config was not changed."
+    fi
     echo ""
   else
     echo ""
-    echo "Add this to your ~/.claude/settings.json:"
-    echo ""
-    echo '  "statusLine": {'
-    echo '    "type": "command",'
-    echo '    "command": "~/.claude/statusline.sh",'
-    echo '    "timeout": 10'
-    echo '  }'
+    tmp=$(jq '.statusLine = {"type":"command","command":"~/.claude/statusline.sh","timeout":10}' "$SETTINGS")
+    echo "$tmp" > "$SETTINGS"
+    echo "✓ Added statusLine config to settings.json"
     echo ""
   fi
 else

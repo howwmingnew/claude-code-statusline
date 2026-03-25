@@ -72,7 +72,7 @@ Write-Host "  Installed to $TargetFile" -ForegroundColor Green
 $StatusLineSnippet = @'
   "statusLine": {
     "type": "command",
-    "command": "pwsh -NoProfile -File ~/.claude/statusline.ps1",
+    "command": "powershell.exe -NoProfile -File ~/.claude/statusline.ps1",
     "timeout": 10
   }
 '@
@@ -82,7 +82,7 @@ $FullSettingsJson = @'
 {
   "statusLine": {
     "type": "command",
-    "command": "pwsh -NoProfile -File ~/.claude/statusline.ps1",
+    "command": "powershell.exe -NoProfile -File ~/.claude/statusline.ps1",
     "timeout": 10
   }
 }
@@ -99,18 +99,54 @@ if (Test-Path $SettingsFile) {
     $settingsContent = Get-Content -Path $SettingsFile -Raw -ErrorAction SilentlyContinue
 
     if ($settingsContent -match '"statusLine"') {
-        # 已有 statusLine 設定 — 提醒使用者確認
-        Write-Host '  Warning: Your settings.json already has a statusLine config.' -ForegroundColor Yellow
-        Write-Host '  To use this script, update it to:' -ForegroundColor Yellow
+        # 已有 statusLine 設定 — 詢問使用者是否覆蓋
+        Write-Host '  Your settings.json already has a statusLine config.' -ForegroundColor Yellow
         Write-Host ''
-        Write-Host $StatusLineSnippet -ForegroundColor White
+        $answer = Read-Host '  Overwrite existing statusLine config? [y/N]'
+        Write-Host ''
+        if ($answer -match '^[Yy]$') {
+            try {
+                $settingsObj = $settingsContent | ConvertFrom-Json
+                $statusLineObj = [PSCustomObject]@{
+                    type    = 'command'
+                    command = 'powershell.exe -NoProfile -File ~/.claude/statusline.ps1'
+                    timeout = 10
+                }
+                $settingsObj.statusLine = $statusLineObj
+                $settingsObj | ConvertTo-Json -Depth 10 | Set-Content -Path $SettingsFile -Encoding UTF8
+                Write-Host '  Updated statusLine config in settings.json' -ForegroundColor Green
+            }
+            catch {
+                Write-Host "  Error updating settings.json: $_" -ForegroundColor Red
+                Write-Host '  Please update it manually to:' -ForegroundColor Yellow
+                Write-Host ''
+                Write-Host $StatusLineSnippet -ForegroundColor White
+            }
+        }
+        else {
+            Write-Host '  Skipped. Your existing statusLine config was not changed.' -ForegroundColor DarkGray
+        }
         Write-Host ''
     }
     else {
-        # 設定檔存在但缺少 statusLine — 提示新增
-        Write-Host "  Add this to your $SettingsFile :" -ForegroundColor White
-        Write-Host ''
-        Write-Host $StatusLineSnippet -ForegroundColor White
+        # 設定檔存在但缺少 statusLine — 自動新增
+        try {
+            $settingsObj = $settingsContent | ConvertFrom-Json
+            $statusLineObj = [PSCustomObject]@{
+                type    = 'command'
+                command = 'powershell.exe -NoProfile -File ~/.claude/statusline.ps1'
+                timeout = 10
+            }
+            $settingsObj | Add-Member -NotePropertyName 'statusLine' -NotePropertyValue $statusLineObj
+            $settingsObj | ConvertTo-Json -Depth 10 | Set-Content -Path $SettingsFile -Encoding UTF8
+            Write-Host '  Added statusLine config to settings.json' -ForegroundColor Green
+        }
+        catch {
+            Write-Host "  Error updating settings.json: $_" -ForegroundColor Red
+            Write-Host "  Please add this to your $SettingsFile :" -ForegroundColor Yellow
+            Write-Host ''
+            Write-Host $StatusLineSnippet -ForegroundColor White
+        }
         Write-Host ''
     }
 }
